@@ -26,12 +26,14 @@ echo "postfix postfix/main_mailer_type select No configuration" | sudo debconf-s
 # 更新并安装基础安全工具
 log ">>> 安装安全工具 ..."
 sudo apt-get update
-sudo apt-get install -y lynis rkhunter chkrootkit
+sudo apt-get install -y lynis rkhunter chkrootkit curl gnupg
 
-# 自动安装 Wazuh-Agent
+# 自动安装 Wazuh-Agent（官方源）
 log ">>> 安装 Wazuh-Agent ..."
-curl -sO https://packages.wazuh.com/4.x/wazuh-install.sh
-sudo bash ./wazuh-install.sh -a agent
+curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | sudo apt-key add -
+echo "deb https://packages.wazuh.com/4.x/apt/ stable main" | sudo tee /etc/apt/sources.list.d/wazuh.list
+sudo apt-get update
+sudo apt-get install -y wazuh-agent
 
 # 启动并设置 Wazuh-Agent 开机自启
 log ">>> 启动并设置 Wazuh-Agent 开机自启 ..."
