@@ -32,9 +32,11 @@ LOGDIR=/var/log/weekly-sec
 sudo mkdir -p "$LOGDIR"
 DATE=$(date +%F)
 
-# 自动同步 rkhunter 的 ALLOW_SSH_ROOT_USER 配置
-if grep -q '^PermitRootLogin yes' /etc/ssh/sshd_config 2>/dev/null; then
-    sudo sed -i 's|^ALLOW_SSH_ROOT_USER.*|ALLOW_SSH_ROOT_USER=yes|' /etc/rkhunter.conf 2>/dev/null || true
+# 同步 SSH 与 rkhunter 配置
+if grep -Eq '^PermitRootLogin\s+(yes|prohibit-password)' /etc/ssh/sshd_config 2>/dev/null; then
+    sudo sed -i 's/^ALLOW_SSH_ROOT_USER=.*/ALLOW_SSH_ROOT_USER=yes/' /etc/rkhunter.conf
+else
+    sudo sed -i 's/^ALLOW_SSH_ROOT_USER=.*/ALLOW_SSH_ROOT_USER=no/' /etc/rkhunter.conf
 fi
 
 echo "[巡检] 开始自动安全巡检..."
@@ -52,8 +54,8 @@ sudo rkhunter --check --skip-keypress --report-warnings-only --logfile "$LOGDIR/
 echo "[巡检] 执行 chkrootkit..."
 sudo chkrootkit > "$LOGDIR/chkrootkit-${DATE}.log"
 
-# 清理旧日志（保留 1 周）
-sudo find "$LOGDIR" -type f -mtime +7 -delete
+# 清理旧日志（保留 2 周）
+sudo find "$LOGDIR" -type f -mtime +14 -delete
 
 echo "[巡检] 本次自动巡检完成，日志保存在 $LOGDIR"
 EOF
