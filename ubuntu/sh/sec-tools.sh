@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # sec-tools.sh
-# 自动安装 lynis、rkhunter、chkrootkit，并设置每周自动巡检，自动修复常见配置问题
+# 自动安装 lynis、rkhunter、chkrootkit，并设置定期自动巡检，自动修复配置问题
 
 set -eu
 
 LOGDIR="/var/log/weekly-sec"
 SCRIPT_PATH="/usr/local/bin/weekly-sec.sh"
 
-cd /root || cd /tmp
+# 进入安全目录，避免 getcwd 报错
+cd /root 2>/dev/null || cd /tmp
 
 echo "[INFO] 开始安装 lynis、rkhunter、chkrootkit..."
 sudo apt-get update
@@ -25,9 +26,16 @@ fi
 echo "[INFO] 创建自动巡检脚本..."
 sudo tee "$SCRIPT_PATH" > /dev/null <<'EOF'
 #!/bin/bash
+cd /root 2>/dev/null || cd /tmp
+
 LOGDIR=/var/log/weekly-sec
 sudo mkdir -p "$LOGDIR"
 DATE=$(date +%F)
+
+# 自动同步 rkhunter 的 ALLOW_SSH_ROOT_USER 配置
+if grep -q '^PermitRootLogin yes' /etc/ssh/sshd_config 2>/dev/null; then
+    sudo sed -i 's|^ALLOW_SSH_ROOT_USER.*|ALLOW_SSH_ROOT_USER=yes|' /etc/rkhunter.conf 2>/dev/null || true
+fi
 
 echo "[巡检] 开始自动安全巡检..."
 
