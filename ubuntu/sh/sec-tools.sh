@@ -44,8 +44,8 @@ sudo rkhunter --check --skip-keypress --report-warnings-only --logfile "$LOGDIR/
 echo "[巡检] 执行 chkrootkit..."
 sudo chkrootkit > "$LOGDIR/chkrootkit-${DATE}.log"
 
-# 清理旧日志（保留 4 周）
-sudo find "$LOGDIR" -type f -mtime +28 -delete
+# 清理旧日志（保留 1 周）
+sudo find "$LOGDIR" -type f -mtime +7 -delete
 
 echo "[巡检] 本次自动巡检完成，日志保存在 $LOGDIR"
 EOF
