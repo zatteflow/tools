@@ -14,7 +14,7 @@ echo "[INFO] 开始安装 lynis、rkhunter、chkrootkit..."
 sudo apt-get update
 sudo apt-get install -y lynis rkhunter chkrootkit
 
-echo "[INFO] 修复 rkhunter WEB_CMD 配置..."
+# 修复 rkhunter WEB_CMD 配置
 sudo sed -i 's|^WEB_CMD=.*|WEB_CMD=""|' /etc/rkhunter.conf 2>/dev/null || true
 sudo sed -i 's|^WEB_CMD=.*|WEB_CMD=""|' /etc/rkhunter.conf.local 2>/dev/null || true
 
@@ -54,8 +54,8 @@ sudo rkhunter --check --skip-keypress --report-warnings-only --logfile "$LOGDIR/
 echo "[巡检] 执行 chkrootkit..."
 (cd /tmp && sudo chkrootkit) > "$LOGDIR/chkrootkit-${DATE}.log" 2>&1
 
-# 清理旧日志（保留 2 周）
-sudo find "$LOGDIR" -type f -mtime +14 -delete
+# 清理旧日志（保留 3 周）
+sudo find "$LOGDIR" -type f -mtime +21 -delete
 
 echo "[巡检] 本次自动巡检完成，日志保存在 $LOGDIR"
 EOF
