@@ -20,6 +20,9 @@ if ! command -v sudo >/dev/null 2>&1; then
     exit 1
 fi
 
+# 避免 Postfix 安装时出现交互式配置
+echo "postfix postfix/main_mailer_type select No configuration" | sudo debconf-set-selections
+
 # 更新并安装基础安全工具
 log ">>> 安装安全工具 ..."
 sudo apt-get update
