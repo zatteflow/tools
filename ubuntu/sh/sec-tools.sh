@@ -2,6 +2,7 @@
 # sec-tools.sh
 # 一键安装并配置 Lynis rkhunter chkrootkit Wazuh-Agent
 # 并设置每周日凌晨 02:00 自动安全扫描
+# 适用于 Ubuntu/Debian 系统
 # 2025-07-19 更新
 
 set -eu
@@ -19,31 +20,18 @@ if ! command -v sudo >/dev/null 2>&1; then
     exit 1
 fi
 
-# 检测发行版
-if command -v apt-get >/dev/null 2>&1; then
-    PKG="apt-get -y"
-elif command -v yum >/dev/null 2>&1; then
-    PKG="yum -y"
-elif command -v dnf >/dev/null 2>&1; then
-    PKG="dnf -y"
-else
-    err "暂不支持此发行版"; exit 1
-fi
-
-# 安装工具
+# 更新并安装基础安全工具
 log ">>> 安装安全工具 ..."
-sudo $PKG update
-sudo $PKG install lynis rkhunter chkrootkit wazuh-agent
+sudo apt-get update
+sudo apt-get install -y lynis rkhunter chkrootkit
 
-# Wazuh-Agent 配置（无自建 Manager 时本地日志）
-log ">>> 配置 Wazuh-Agent ..."
-CONF_FILE=/var/ossec/etc/ossec.conf
-if sudo test -f "$CONF_FILE"; then
-    # 如果存在 <server-ip>127.0.0.1</server-ip> 则不重复操作
-    if ! sudo grep -q '<server-ip>127.0.0.1</server-ip>' "$CONF_FILE"; then
-        sudo sed -i 's|<server-ip>.*</server-ip>|<server-ip>127.0.0.1</server-ip>|g' "$CONF_FILE"
-    fi
-fi
+# 自动安装 Wazuh-Agent
+log ">>> 安装 Wazuh-Agent ..."
+curl -sO https://packages.wazuh.com/4.x/wazuh-install.sh
+sudo bash ./wazuh-install.sh -a agent
+
+# 启动并设置 Wazuh-Agent 开机自启
+log ">>> 启动并设置 Wazuh-Agent 开机自启 ..."
 sudo systemctl enable --now wazuh-agent
 
 # 创建每周扫描脚本
