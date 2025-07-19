@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 # sec-tools.sh
-# 一键安装并配置 Lynis rkhunter chkrootkit Wazuh-Agent
-# 并设置每周日凌晨 02:00 自动安全扫描
+# 一键安装 Lynis rkhunter chkrootkit 并设置每周日凌晨 02:00 自动安全扫描
 # 适用于 Ubuntu/Debian 系统
-# 2025-07-19 更新
 
 set -eu
 
-# 颜色输出
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 
 log()  { echo -e "${GREEN}[INFO]${NC} $*"; }
-warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 err()  { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 
 # 检查 sudo
@@ -20,24 +16,13 @@ if ! command -v sudo >/dev/null 2>&1; then
     exit 1
 fi
 
-# 避免 Postfix 安装时出现交互式配置
+# 防止 postfix 交互
 echo "postfix postfix/main_mailer_type select No configuration" | sudo debconf-set-selections
 
-# 更新并安装基础安全工具
-log ">>> 安装安全工具 ..."
+# 安装工具
+log ">>> 安装 lynis rkhunter chkrootkit ..."
 sudo apt-get update
-sudo apt-get install -y lynis rkhunter chkrootkit curl gnupg
-
-# 自动安装 Wazuh-Agent（官方源）
-log ">>> 安装 Wazuh-Agent ..."
-curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | sudo apt-key add -
-echo "deb https://packages.wazuh.com/4.x/apt/ stable main" | sudo tee /etc/apt/sources.list.d/wazuh.list
-sudo apt-get update
-sudo apt-get install -y wazuh-agent
-
-# 启动并设置 Wazuh-Agent 开机自启
-log ">>> 启动并设置 Wazuh-Agent 开机自启 ..."
-sudo systemctl enable --now wazuh-agent
+sudo apt-get install -y lynis rkhunter chkrootkit
 
 # 创建每周扫描脚本
 SCRIPT_PATH=/usr/local/bin/weekly-sec.sh
