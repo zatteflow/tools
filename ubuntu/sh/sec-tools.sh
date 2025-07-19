@@ -8,7 +8,7 @@ LOGDIR="/var/log/weekly-sec"
 SCRIPT_PATH="/usr/local/bin/weekly-sec.sh"
 
 # 进入安全目录，避免 getcwd 报错
-cd /tmp 2>/dev/null || cd /  # 修改1：使用更安全的/tmp目录而非/root
+cd /tmp 2>/dev/null || cd /
 
 echo "[INFO] 开始安装 lynis、rkhunter、chkrootkit..."
 sudo apt-get update
@@ -18,32 +18,26 @@ echo "[INFO] 修复 rkhunter WEB_CMD 配置..."
 sudo sed -i 's|^WEB_CMD=.*|WEB_CMD=""|' /etc/rkhunter.conf 2>/dev/null || true
 sudo sed -i 's|^WEB_CMD=.*|WEB_CMD=""|' /etc/rkhunter.conf.local 2>/dev/null || true
 
-# 修改2：更全面的SSH root登录检测
-if grep -Eq '^PermitRootLogin\s+(yes|prohibit-password)' /etc/ssh/sshd_config 2>/dev/null; then
-    sudo sed -i 's|^ALLOW_SSH_ROOT_USER.*|ALLOW_SSH_ROOT_USER=yes|' /etc/rkhunter.conf 2>/dev/null || true
-    sudo sed -i 's|^ALLOW_SSH_ROOT_USER.*|ALLOW_SSH_ROOT_USER=yes|' /etc/rkhunter.conf.local 2>/dev/null || true
-else
-    sudo sed -i 's|^ALLOW_SSH_ROOT_USER.*|ALLOW_SSH_ROOT_USER=no|' /etc/rkhunter.conf 2>/dev/null || true
-    sudo sed -i 's|^ALLOW_SSH_ROOT_USER.*|ALLOW_SSH_ROOT_USER=no|' /etc/rkhunter.conf.local 2>/dev/null || true
-fi
+# 修复点：精确同步SSH和rkhunter的root登录配置
+SSH_ROOT_SETTING=$(sudo grep -E '^PermitRootLogin\s+(yes|prohibit-password|without-password)' /etc/ssh/sshd_config 2>/dev/null && echo "yes" || echo "no")
+for RKH_CONF in /etc/rkhunter.conf /etc/rkhunter.conf.local; do
+    [ -f "$RKH_CONF" ] && sudo sed -i "s/^ALLOW_SSH_ROOT_USER=.*/ALLOW_SSH_ROOT_USER=${SSH_ROOT_SETTING}/" "$RKH_CONF" 2>/dev/null || true
+done
 
 echo "[INFO] 创建自动巡检脚本..."
 sudo tee "$SCRIPT_PATH" > /dev/null <<'EOF'
 #!/bin/bash
-cd /tmp 2>/dev/null || cd /  # 修改3：使用更安全的/tmp目录而非/root
+cd /tmp 2>/dev/null || cd /
 
 LOGDIR=/var/log/weekly-sec
 sudo mkdir -p "$LOGDIR"
 DATE=$(date +%F)
 
-# 修改4：更全面的SSH配置同步
-if grep -Eq '^PermitRootLogin\s+(yes|prohibit-password)' /etc/ssh/sshd_config 2>/dev/null; then
-    [ -f /etc/rkhunter.conf ] && sudo sed -i 's/^ALLOW_SSH_ROOT_USER=.*/ALLOW_SSH_ROOT_USER=yes/' /etc/rkhunter.conf
-    [ -f /etc/rkhunter.conf.local ] && sudo sed -i 's/^ALLOW_SSH_ROOT_USER=.*/ALLOW_SSH_ROOT_USER=yes/' /etc/rkhunter.conf.local
-else
-    [ -f /etc/rkhunter.conf ] && sudo sed -i 's/^ALLOW_SSH_ROOT_USER=.*/ALLOW_SSH_ROOT_USER=no/' /etc/rkhunter.conf
-    [ -f /etc/rkhunter.conf.local ] && sudo sed -i 's/^ALLOW_SSH_ROOT_USER=.*/ALLOW_SSH_ROOT_USER=no/' /etc/rkhunter.conf.local
-fi
+# 修复点：巡检时的配置同步（与安装时逻辑一致）
+SSH_ROOT_SETTING=$(sudo grep -E '^PermitRootLogin\s+(yes|prohibit-password|without-password)' /etc/ssh/sshd_config 2>/dev/null && echo "yes" || echo "no")
+for RKH_CONF in /etc/rkhunter.conf /etc/rkhunter.conf.local; do
+    [ -f "$RKH_CONF" ] && sudo sed -i "s/^ALLOW_SSH_ROOT_USER=.*/ALLOW_SSH_ROOT_USER=${SSH_ROOT_SETTING}/" "$RKH_CONF" 2>/dev/null
+done
 
 echo "[巡检] 开始自动安全巡检..."
 
@@ -56,7 +50,7 @@ echo "[巡检] 执行 rkhunter..."
 sudo rkhunter --update --quiet
 sudo rkhunter --check --skip-keypress --report-warnings-only --logfile "$LOGDIR/rkhunter-${DATE}.log"
 
-# 修改5：确保chkrootkit在明确目录下运行
+# chkrootkit
 echo "[巡检] 执行 chkrootkit..."
 (cd /tmp && sudo chkrootkit) > "$LOGDIR/chkrootkit-${DATE}.log" 2>&1
 
