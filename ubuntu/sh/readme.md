@@ -2,6 +2,9 @@
 curl -fsSL https://raw.githubusercontent.com/zatteflow/tools/main/ubuntu/sh/sec-tools.sh | sudo bash
 # 或本地保存上方内容
 
+# 清理系统
+curl -fsSL https://raw.githubusercontent.com/zatteflow/tools/main/ubuntu/sh/clear.sh | sudo bash
+
 # 2. 赋权 & 执行
 chmod +x sec-tools.sh
 sudo ./sec-tools.sh
