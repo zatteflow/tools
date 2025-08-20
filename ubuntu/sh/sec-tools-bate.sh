@@ -19,8 +19,8 @@ sudo sed -i 's|^WEB_CMD=.*|WEB_CMD=""|' /etc/rkhunter.conf 2>/dev/null || true
 sudo sed -i 's|^WEB_CMD=.*|WEB_CMD=""|' /etc/rkhunter.conf.local 2>/dev/null || true
 
 # 同步 SSH 与 rkhunter 的 root 登录配置
-# SSH_ROOT_SETTING=$(sudo grep -E '^PermitRootLogin\s+(yes|prohibit-password|without-password)' /etc/ssh/sshd_config 2>/dev/null && echo "yes" || echo "no")
-SSH_ROOT_SETTING=$(if sudo grep -Eq '^PermitRootLogin\s+(yes|prohibit-password|without-password)' /etc/ssh/sshd_config 2>/dev/null; then echo "yes"; else echo "no"; fi)
+SSH_ROOT_SETTING=$(sudo grep -E '^PermitRootLogin\s+(yes|prohibit-password|without-password)' /etc/ssh/sshd_config 2>/dev/null && echo "yes" || echo "no")
+# SSH_ROOT_SETTING=$(if sudo grep -Eq '^PermitRootLogin\s+(yes|prohibit-password|without-password)' /etc/ssh/sshd_config 2>/dev/null; then echo "yes"; else echo "no"; fi)
 for RKH_CONF in /etc/rkhunter.conf /etc/rkhunter.conf.local; do
     [ -f "$RKH_CONF" ] && sudo sed -i "s/^ALLOW_SSH_ROOT_USER=.*/ALLOW_SSH_ROOT_USER=${SSH_ROOT_SETTING}/" "$RKH_CONF" 2>/dev/null || true
 done
@@ -66,7 +66,7 @@ main() {
 
     # chkrootkit
     echo "[巡检] 执行 chkrootkit..."
-    sudo bash -c "cd /tmp && chkrootkit > '/var/log/weekly-sec/chkrootkit-$(date +%F).log' 2>&1"
+    (cd /tmp && sudo chkrootkit) > "$LOGDIR/chkrootkit-${DATE}.log" 2>&1
 
     # 清理 21 天前的日志
     sudo find "$LOGDIR" -type f -mtime +21 -delete
