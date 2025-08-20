@@ -1,4 +1,6 @@
 ### 1. 下载脚本（任选其一）
+curl -fsSL https://raw.githubusercontent.com/zatteflow/tools/main/ubuntu/sh/sec-tools-v2.sh | sudo bash // 检查后，自动生成告警摘要日志（quick-audit.sh）
+
 curl -fsSL https://raw.githubusercontent.com/zatteflow/tools/main/ubuntu/sh/sec-tools.sh | sudo bash
 ### 或本地保存上方内容
 
