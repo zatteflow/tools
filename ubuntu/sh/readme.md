@@ -2,6 +2,9 @@
 curl -fsSL https://raw.githubusercontent.com/zatteflow/tools/main/ubuntu/sh/sec-tools.sh | sudo bash
 # 或本地保存上方内容
 
+# 提取本周报告核心信息（需sec-tools.sh自动执行完后）
+curl -fsSL https://raw.githubusercontent.com/zatteflow/tools/main/ubuntu/sh/quick-audit.sh | sudo bash
+
 # 清理系统
 curl -fsSL https://raw.githubusercontent.com/zatteflow/tools/main/ubuntu/sh/clear.sh | sudo bash
 
