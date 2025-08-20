@@ -66,7 +66,7 @@ main() {
 
     # chkrootkit
     echo "[巡检] 执行 chkrootkit..."
-    zatteflow@racknerd-b164cf2:~$ sudo bash -c "cd /tmp && chkrootkit > '/var/log/weekly-sec/chkrootkit-$(date +%F).log' 2>&1"
+    sudo bash -c "cd /tmp && chkrootkit > '/var/log/weekly-sec/chkrootkit-$(date +%F).log' 2>&1"
 
     # 清理 21 天前的日志
     sudo find "$LOGDIR" -type f -mtime +21 -delete
