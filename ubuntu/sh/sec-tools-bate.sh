@@ -8,7 +8,10 @@ LOGDIR="/var/log/weekly-sec"
 SCRIPT_PATH="/usr/local/bin/weekly-sec.sh"
 
 # 防止 getcwd 报错
-cd /tmp 2>/dev/null || cd /
+# cd /tmp 2>/dev/null || cd /
+if ! cd /tmp 2>/dev/null; then
+  cd /
+fi
 
 echo "[INFO] 开始安装 lynis、rkhunter、chkrootkit..."
 sudo apt-get update
@@ -34,7 +37,10 @@ sudo tee "$SCRIPT_PATH" > /dev/null <<'EOF'
 # 自动更新工具包 + 自动生成每日摘要
 
 # set -eu
-cd /tmp 2>/dev/null || cd /
+# cd /tmp 2>/dev/null || cd /
+if ! cd /tmp 2>/dev/null; then
+  cd /
+fi
 
 LOGDIR=/var/log/weekly-sec
 sudo mkdir -p "$LOGDIR"
