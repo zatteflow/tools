@@ -33,7 +33,7 @@ sudo tee "$SCRIPT_PATH" > /dev/null <<'EOF'
 # 支持 manual/quick/propupd 子命令
 # 自动更新工具包 + 自动生成每日摘要
 
-set -eu
+# set -eu
 cd /tmp 2>/dev/null || cd /
 
 LOGDIR=/var/log/weekly-sec
